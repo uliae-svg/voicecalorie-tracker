@@ -4,6 +4,7 @@
 
 @import './variables.css';
 @import './components/mic-button.css';
+@import './components/meal-tabs.css';
 @import './components/food-card.css';
 @import './components/daily-log.css';
 

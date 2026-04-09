@@ -112,24 +112,50 @@ export function renderLog(entries, onDelete) {
     return;
   }
 
-  list.innerHTML = entries.map((e) => {
-    const time = new Date(e.timestamp).toLocaleTimeString('ru-RU', {
-      hour: '2-digit', minute: '2-digit',
-    });
-    return `
-      <div class="log-item" data-id="${e.id}">
-        <div class="log-item__left">
-          <span class="log-item__name">${escHtml(e.label)}</span>
-          <span class="log-item__time">${time}</span>
-        </div>
-        <div class="log-item__right">
-          <span class="log-item__cal">${e.calories} ккал</span>
-          <span class="log-item__macros">${e.protein}б / ${e.fat}ж / ${e.carbs}у</span>
-        </div>
-        <button class="log-item__delete" data-id="${e.id}" title="Удалить">×</button>
-      </div>
-    `;
-  }).join('');
+  const MEALS = [
+    { key: 'breakfast', icon: '🌅', name: 'Завтрак' },
+    { key: 'lunch',     icon: '☀️', name: 'Обед' },
+    { key: 'dinner',    icon: '🌙', name: 'Ужин' },
+    { key: 'snack',     icon: '🍎', name: 'Перекус' },
+  ];
+
+  // Группируем по приёму пищи; старые записи без meal → snack
+  const groups = Object.groupBy(entries, (e) => e.meal ?? 'snack');
+
+  list.innerHTML = MEALS
+    .filter((m) => groups[m.key]?.length)
+    .map((m) => {
+      const items    = groups[m.key];
+      const mealCal  = items.reduce((sum, e) => sum + e.calories, 0);
+
+      const rows = items.map((e) => {
+        const time = new Date(e.timestamp).toLocaleTimeString('ru-RU', {
+          hour: '2-digit', minute: '2-digit',
+        });
+        return `
+          <div class="log-item" data-id="${e.id}">
+            <div class="log-item__left">
+              <span class="log-item__name">${escHtml(e.label)}</span>
+              <span class="log-item__time">${time}</span>
+            </div>
+            <div class="log-item__right">
+              <span class="log-item__cal">${e.calories} ккал</span>
+              <span class="log-item__macros">${e.protein}б / ${e.fat}ж / ${e.carbs}у</span>
+            </div>
+            <button class="log-item__delete" data-id="${e.id}" title="Удалить">×</button>
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="log-meal-group">
+          <div class="log-meal-header">
+            <span class="log-meal-header__icon">${m.icon}</span>
+            <span class="log-meal-header__name">${m.name}</span>
+            <span class="log-meal-header__cal">${mealCal} ккал</span>
+          </div>
+          ${rows}
+        </div>`;
+    }).join('');
 
   list.querySelectorAll('.log-item__delete').forEach((btn) => {
     btn.addEventListener('click', () => onDelete(btn.dataset.id));

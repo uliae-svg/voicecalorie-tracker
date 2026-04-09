@@ -1,0 +1,97 @@
+/* ────────────────────────────────────────────────────────
+   Meal Tabs — переключатель приёма пищи
+   ──────────────────────────────────────────────────────── */
+
+.meal-tabs {
+  display: flex;
+  gap: var(--s-2);
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0 var(--s-4);
+}
+
+.meal-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: var(--s-2) var(--s-4);
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-base);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    color        var(--t-base),
+    border-color var(--t-base),
+    background   var(--t-base),
+    box-shadow   var(--t-base),
+    transform    var(--t-fast);
+  white-space: nowrap;
+  outline: none;
+}
+
+.meal-tab:hover {
+  color: var(--text-primary);
+  border-color: var(--border-bright);
+  background: var(--bg-card-hover);
+}
+
+.meal-tab:active {
+  transform: scale(0.96);
+}
+
+/* Активная вкладка */
+.meal-tab.active {
+  color: var(--bg-base);
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow-sm);
+}
+
+.meal-tab.active:hover {
+  background: var(--accent-bright);
+  border-color: var(--accent-bright);
+}
+
+/* Иконка */
+.meal-tab__icon {
+  font-size: 0.95em;
+  line-height: 1;
+}
+
+/* ── Группировка в дневнике ── */
+
+.log-meal-group + .log-meal-group {
+  margin-top: var(--s-5);
+}
+
+.log-meal-header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+  padding: 0 var(--s-1);
+}
+
+.log-meal-header__icon {
+  font-size: 0.85rem;
+}
+
+.log-meal-header__name {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.log-meal-header__cal {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}

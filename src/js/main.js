@@ -12,12 +12,45 @@ import { setMicState, showTranscript, renderResult,
 
 // ── Состояние ────────────────────────────────────────────
 
-let log = getTodayLog();
+let log         = getTodayLog();
+let currentMeal = detectMealByTime();
 
 // ── Инициализация UI ─────────────────────────────────────
 
 setLogDate();
+initMealTabs();
 refreshUI();
+
+// ── Meal Tabs ─────────────────────────────────────────────
+
+/** Определяет приём пищи по текущему времени суток */
+function detectMealByTime() {
+  const hour = new Date().getHours();
+  if (hour >= 6  && hour < 11) return 'breakfast';
+  if (hour >= 11 && hour < 16) return 'lunch';
+  if (hour >= 16 && hour < 22) return 'dinner';
+  return 'snack';
+}
+
+function initMealTabs() {
+  const tabs = document.querySelectorAll('.meal-tab');
+
+  // Активируем таб по времени суток
+  tabs.forEach((tab) => {
+    tab.classList.toggle('active', tab.dataset.meal === currentMeal);
+  });
+
+  // Слушаем клики
+  document.getElementById('mealTabs').addEventListener('click', (e) => {
+    const tab = e.target.closest('.meal-tab');
+    if (!tab) return;
+
+    currentMeal = tab.dataset.meal;
+
+    tabs.forEach((t) => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+}
 
 // ── Speech Recognizer ────────────────────────────────────
 
@@ -33,14 +66,11 @@ const recognizer = new SpeechRecognizer({
     try {
       const nutrition = await analyzeFood(text);
 
-      // Обновляем transcript с переводом
       showTranscript(text, nutrition.englishLabel);
-
-      // Рендерим карточку
       renderResult(nutrition);
 
-      // Сохраняем в дневник
-      addEntry(nutrition);
+      // Сохраняем с текущим приёмом пищи
+      addEntry({ ...nutrition, meal: currentMeal });
       log = getTodayLog();
       refreshUI();
 
@@ -86,8 +116,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 // ── Обновление всего UI ──────────────────────────────────
 
 function refreshUI() {
-  const totals = calcTotals(log);
-  updateTotals(totals);
+  updateTotals(calcTotals(log));
   renderLog(log, (id) => {
     removeEntry(id);
     log = getTodayLog();
