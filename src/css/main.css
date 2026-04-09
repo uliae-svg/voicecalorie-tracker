@@ -146,6 +146,23 @@ a { color: var(--accent); }
   background: var(--error-dim);
 }
 
+/* ── Date bar ─────────────────────────────────────────── */
+
+.date-bar {
+  text-align: center;
+  padding: var(--s-2) var(--s-4);
+  border-bottom: 1px solid var(--border-dim);
+  background: var(--bg-surface);
+}
+
+.date-bar span {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  text-transform: lowercase;
+}
+
 /* ── Main content ─────────────────────────────────────── */
 
 .main {

@@ -89,7 +89,6 @@ export async function analyzeFood(russianText) {
   // 3. Переставляем в формат «120g chicken» (Edamam лучше понимает)
   const englishText = reorderForEdamam(translated);
 
-  console.log('[nutrition] pipeline:', { russianText, normalized, translated, englishText });
 
   // 3. Запрос к Edamam
   const url = new URL(CONFIG.EDAMAM_BASE_URL);

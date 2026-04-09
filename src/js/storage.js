@@ -5,9 +5,22 @@
 const STORAGE_KEY = 'voicecalorie_log_v1';
 const DAYS_TO_KEEP = 30;
 
-/** @returns {string} дата в формате YYYY-MM-DD */
+/** @returns {string} локальная дата в формате YYYY-MM-DD */
 function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** Извлекает локальную дату из ISO-строки timestamp */
+function localDateOf(timestamp) {
+  const d = new Date(timestamp);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 /** Читает все записи из localStorage */
@@ -35,7 +48,7 @@ function writeAll(entries) {
 /** Возвращает записи за сегодня */
 export function getTodayLog() {
   const today = todayKey();
-  return readAll().filter((e) => e.timestamp.startsWith(today));
+  return readAll().filter((e) => localDateOf(e.timestamp) === today);
 }
 
 /** Добавляет новую запись */
@@ -54,7 +67,7 @@ export function removeEntry(id) {
 /** Очищает записи за сегодня */
 export function clearToday() {
   const today = todayKey();
-  const all = readAll().filter((e) => !e.timestamp.startsWith(today));
+  const all = readAll().filter((e) => localDateOf(e.timestamp) !== today);
   writeAll(all);
 }
 

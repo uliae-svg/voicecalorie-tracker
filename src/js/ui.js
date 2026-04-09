@@ -155,10 +155,20 @@ export function showError(message) {
 
 /** Устанавливает текущую дату в журнале */
 export function setLogDate() {
-  const el = document.getElementById('logDate');
-  el.textContent = new Date().toLocaleDateString('ru-RU', {
+  const now = new Date();
+
+  const shortDate = now.toLocaleDateString('ru-RU', {
     weekday: 'long', day: 'numeric', month: 'long',
   });
+
+  // «Сегодня, Четверг, 10 апреля» — заглавная первая буква
+  const todayStr = 'Сегодня, ' + shortDate.charAt(0).toUpperCase() + shortDate.slice(1);
+
+  document.getElementById('todayDate').textContent = todayStr;
+
+  // Журнал внизу — только «Четверг, 10 апреля» без «Сегодня»
+  document.getElementById('logDate').textContent =
+    shortDate.charAt(0).toUpperCase() + shortDate.slice(1);
 }
 
 // ── Утилиты ──────────────────────────────────────────────
