@@ -1,0 +1,142 @@
+/* ────────────────────────────────────────────────────────
+   Daily Log Component
+   ──────────────────────────────────────────────────────── */
+
+.log-section {
+  margin-top: var(--s-10);
+  padding: 0 var(--s-4) var(--s-16);
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.log-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.log-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.log-date {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+/* ── Log list ── */
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.log-empty {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--s-8) 0;
+}
+
+/* ── Log item ── */
+.log-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-sm);
+  background: var(--bg-surface);
+  border: 1px solid transparent;
+  transition:
+    background     var(--t-fast),
+    border-color   var(--t-fast);
+  position: relative;
+}
+
+.log-item:hover {
+  background: var(--bg-card);
+  border-color: var(--border-dim);
+}
+
+.log-item__left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.log-item__name {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.log-item__time {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.log-item__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.log-item__cal {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--cal);
+}
+
+.log-item__macros {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+}
+
+.log-item__delete {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: var(--s-1) var(--s-2);
+  border-radius: var(--r-sm);
+  transition: color var(--t-fast), background var(--t-fast);
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+.log-item:hover .log-item__delete {
+  opacity: 1;
+}
+
+.log-item__delete:hover {
+  color: var(--error);
+  background: var(--error-dim);
+}

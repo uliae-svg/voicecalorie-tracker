@@ -1,0 +1,77 @@
+/* ────────────────────────────────────────────────────────
+   Design Tokens — VoiceCalorie
+   ──────────────────────────────────────────────────────── */
+
+:root {
+  /* Background layers */
+  --bg-base:        #060b06;
+  --bg-surface:     #0b150b;
+  --bg-card:        #0f1d0f;
+  --bg-card-hover:  #132213;
+  --bg-input:       #0d190d;
+
+  /* Borders */
+  --border-dim:     #162916;
+  --border-base:    #1e3d1e;
+  --border-bright:  #2d5e2d;
+
+  /* Accent — phosphor green */
+  --accent:         #10b981;
+  --accent-bright:  #34d399;
+  --accent-dim:     rgba(16, 185, 129, 0.12);
+  --accent-glow:    rgba(16, 185, 129, 0.35);
+  --accent-glow-sm: rgba(16, 185, 129, 0.15);
+
+  /* Text */
+  --text-primary:   #d4edd9;
+  --text-secondary: #5d8a65;
+  --text-muted:     #2e4f33;
+
+  /* Macros palette */
+  --cal:     #fbbf24;
+  --cal-dim: rgba(251, 191, 36, 0.12);
+  --prot:    #34d399;
+  --prot-dim:rgba(52, 211, 153, 0.12);
+  --fat:     #f87171;
+  --fat-dim: rgba(248, 113, 113, 0.12);
+  --carb:    #818cf8;
+  --carb-dim:rgba(129, 140, 248, 0.12);
+
+  /* Status */
+  --error:     #f87171;
+  --error-dim: rgba(248, 113, 113, 0.1);
+
+  /* Typography */
+  --font-display: 'Chakra Petch', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --font-body:    'DM Sans', sans-serif;
+
+  /* Spacing scale */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-8:  32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+
+  /* Border radii */
+  --r-sm:   6px;
+  --r-md:   12px;
+  --r-lg:   18px;
+  --r-xl:   24px;
+  --r-full: 9999px;
+
+  /* Transitions */
+  --t-fast: 150ms ease;
+  --t-base: 250ms ease;
+  --t-slow: 400ms ease;
+
+  /* Shadows */
+  --shadow-card:  0 2px 16px rgba(0, 0, 0, 0.5);
+  --shadow-glow:  0 0 48px var(--accent-glow);
+  --shadow-inset: inset 0 1px 0 rgba(16, 185, 129, 0.08);
+}

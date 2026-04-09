@@ -1,0 +1,139 @@
+/* ────────────────────────────────────────────────────────
+   Mic Button Component
+   ──────────────────────────────────────────────────────── */
+
+.mic-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-5);
+  padding: var(--s-10) 0 var(--s-8);
+}
+
+.mic-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Ripple rings ── */
+.ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mic-btn.listening .ripple {
+  animation: ripple-expand 2s ease-out infinite;
+}
+
+.mic-btn.listening .ripple:nth-child(2) { animation-delay: 0.65s; }
+.mic-btn.listening .ripple:nth-child(3) { animation-delay: 1.3s; }
+
+@keyframes ripple-expand {
+  0%   { transform: scale(1);   opacity: 0.7; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* ── Button itself ── */
+.mic-btn {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-base);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color       var(--t-base),
+    border-color var(--t-base),
+    box-shadow  var(--t-base),
+    background  var(--t-base),
+    transform   var(--t-fast);
+  outline: none;
+  z-index: 1;
+  box-shadow: var(--shadow-card);
+}
+
+.mic-btn:hover {
+  color: var(--accent);
+  border-color: var(--border-bright);
+  background: var(--bg-card-hover);
+  transform: scale(1.04);
+}
+
+.mic-btn:active {
+  transform: scale(0.97);
+}
+
+/* Listening state */
+.mic-btn.listening {
+  color: var(--accent-bright);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 0 0 3px var(--accent-glow-sm), var(--shadow-glow);
+}
+
+/* Processing state */
+.mic-btn.processing {
+  color: var(--text-muted);
+  border-color: var(--border-dim);
+  cursor: not-allowed;
+  animation: pulse-dim 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse-dim {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ── Mic icon ── */
+.mic-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--t-base);
+}
+
+.mic-btn.listening .mic-icon {
+  transform: scale(1.1);
+}
+
+/* ── Hint text ── */
+.mic-hint {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  text-align: center;
+  letter-spacing: 0.01em;
+  transition: color var(--t-base);
+  min-height: 1.4em;
+}
+
+.mic-hint--sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: -var(--s-3);
+}
+
+.mic-hint--sub em {
+  color: var(--text-secondary);
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.mic-btn.listening ~ .mic-hint {
+  color: var(--accent);
+}
