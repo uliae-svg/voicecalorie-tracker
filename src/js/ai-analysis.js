@@ -65,6 +65,80 @@ ${totalsText}
  * @param {Function} callbacks.onDone   — вызывается когда ответ закончен
  * @param {Function} callbacks.onError  — вызывается при ошибке
  */
+/**
+ * Стримит советы по продуктам для восполнения дефицитных нутриентов.
+ * @param {Array}  deficient — [{label, value, unit, dv}, ...]  нутриенты < 50% нормы
+ * @param {object} callbacks — { onChunk, onDone, onError }
+ */
+export async function getNutrientTips(deficient, { onChunk, onDone, onError }) {
+  if (!CONFIG.GROQ_API_KEY) {
+    onError('Groq API ключ не задан.');
+    return;
+  }
+
+  const list = deficient
+    .map((n) => `${n.label}: ${n.value} ${n.unit} (${Math.round((n.value / n.dv) * 100)}% нормы)`)
+    .join(', ');
+
+  const prompt = `Ты нутрициолог. Отвечай только на русском, кратко и конкретно.
+
+Пользователю сегодня не хватает: ${list}.
+
+Назови 4-5 доступных продукта с высоким содержанием этих веществ. Для каждого — одно короткое пояснение почему он помогает. Без вступлений и лишних слов.`;
+
+  let response;
+  try {
+    response = await fetch(CONFIG.GROQ_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({
+        model:       CONFIG.GROQ_MODEL,
+        messages:    [{ role: 'user', content: prompt }],
+        stream:      true,
+        max_tokens:  350,
+        temperature: 0.6,
+      }),
+    });
+  } catch {
+    onError('Не удалось подключиться к Groq.');
+    return;
+  }
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    onError(`Ошибка ${response.status}: ${err?.error?.message ?? 'неизвестная ошибка'}`);
+    return;
+  }
+
+  const reader  = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const lines = decoder.decode(value, { stream: true }).split('\n');
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') { onDone(); return; }
+        let parsed;
+        try { parsed = JSON.parse(payload); } catch { continue; }
+        const text = parsed.choices?.[0]?.delta?.content ?? '';
+        if (text) onChunk(text);
+      }
+    }
+  } catch {
+    onError('Ошибка чтения ответа.');
+    return;
+  }
+
+  onDone();
+}
+
 export async function analyzeDiet(log, totals, { onChunk, onDone, onError }) {
   if (!CONFIG.GROQ_API_KEY) {
     onError('Groq API ключ не задан. Добавьте VITE_GROQ_API_KEY в файл .env\nКлюч бесплатно: https://console.groq.com/');

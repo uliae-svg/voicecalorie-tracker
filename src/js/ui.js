@@ -463,6 +463,16 @@ function renderDailyMicros(vitamins, minerals) {
        <div class="micro-chips__row">${minerals.map(chip).join('')}</div>`
     : '';
 
+  // Дефицитные нутриенты (< 50% нормы) для кнопки совета
+  const allNutrients = [...(vitamins ?? []), ...(minerals ?? [])];
+  const deficient    = allNutrients.filter((n) => n.dv && (n.value / n.dv) < 0.5);
+  const tipBtnHtml   = deficient.length
+    ? `<button class="micros-tip-btn" id="microsTipBtn">
+         💡 Что съесть для восполнения?
+       </button>
+       <div class="micros-tip-response" id="microsTipResponse" style="display:none"></div>`
+    : '';
+
   wrap.innerHTML = `
     <button class="daily-micros__toggle" id="dailyMicrosToggle" aria-expanded="${microsExpanded}">
       <span>Витамины и минералы за день</span>
@@ -474,6 +484,7 @@ function renderDailyMicros(vitamins, minerals) {
     </button>
     <div class="daily-micros__body${microsExpanded ? ' open' : ''}" id="dailyMicrosBody">
       ${vitHtml}${minHtml}
+      ${tipBtnHtml}
     </div>`;
 
   wrap.querySelector('#dailyMicrosToggle').addEventListener('click', () => {
@@ -483,6 +494,48 @@ function renderDailyMicros(vitamins, minerals) {
     body.classList.toggle('open', microsExpanded);
     chevron.classList.toggle('rotated', microsExpanded);
     wrap.querySelector('#dailyMicrosToggle').setAttribute('aria-expanded', microsExpanded);
+  });
+
+  // Кнопка совета нутрициолога
+  wrap.querySelector('#microsTipBtn')?.addEventListener('click', () => {
+    _fireMicrosTip(deficient, wrap);
+  });
+}
+
+/** Запускает Groq-запрос по дефицитным нутриентам */
+async function _fireMicrosTip(deficient, wrap) {
+  const btn      = wrap.querySelector('#microsTipBtn');
+  const respWrap = wrap.querySelector('#microsTipResponse');
+  if (!btn || !respWrap) return;
+
+  btn.disabled    = true;
+  btn.textContent = '⏳ Думаю...';
+  respWrap.style.display = '';
+  respWrap.innerHTML     = '<div class="micros-tip-text" id="microsTipText"></div>';
+
+  const { getNutrientTips } = await import('./ai-analysis.js');
+
+  getNutrientTips(deficient, {
+    onChunk: (text) => {
+      const el = respWrap.querySelector('#microsTipText');
+      if (el) el.textContent += text;
+    },
+    onDone: () => {
+      btn.disabled    = false;
+      btn.textContent = '💡 Что съесть для восполнения?';
+      const el = respWrap.querySelector('#microsTipText');
+      if (el) {
+        el.innerHTML = el.textContent
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\n/g, '<br>');
+        el.classList.add('done');
+      }
+    },
+    onError: (msg) => {
+      btn.disabled    = false;
+      btn.textContent = '💡 Что съесть для восполнения?';
+      respWrap.innerHTML = `<div class="micros-tip-error">${escHtml(msg)}</div>`;
+    },
   });
 }
 

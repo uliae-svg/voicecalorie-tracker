@@ -142,6 +142,63 @@
   line-height: 1;
 }
 
+/* ── Кнопка совета нутрициолога ── */
+.micros-tip-btn {
+  margin-top: var(--s-4);
+  width: 100%;
+  padding: var(--s-3) var(--s-4);
+  background: linear-gradient(135deg, rgba(99,102,241,0.07), rgba(139,92,246,0.07));
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--r-lg);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6366f1;
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast);
+  text-align: left;
+}
+
+.micros-tip-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.micros-tip-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── Блок ответа ── */
+.micros-tip-response {
+  margin-top: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg-surface);
+  border-radius: var(--r-lg);
+  border-left: 3px solid #6366f1;
+}
+
+.micros-tip-text {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.micros-tip-text::after {
+  content: '▌';
+  display: inline-block;
+  animation: blink 0.8s step-end infinite;
+  color: #6366f1;
+  margin-left: 1px;
+}
+
+.micros-tip-text.done::after { display: none; }
+
+.micros-tip-error {
+  font-size: 0.78rem;
+  color: var(--error);
+}
+
 /* ── Color variants ── */
 .micro-chip--good .micro-chip__fill { background: #10b981; }
 .micro-chip--good .micro-chip__pct  { color: #10b981; }
