@@ -1,0 +1,352 @@
+/* ────────────────────────────────────────────────────────
+   Profile Modal — настройка профиля и расчёт КБЖУ
+   ──────────────────────────────────────────────────────── */
+
+/* ── Кнопка профиля в хедере ── */
+.profile-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.header-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-full);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+}
+
+.profile-btn:hover .header-avatar {
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.5);
+}
+
+/* ── Оверлей ── */
+.profile-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.profile-modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── Панель ── */
+.profile-modal {
+  width: 100%;
+  max-width: 480px;
+  max-height: 92dvh;
+  background: var(--bg-card);
+  border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  scrollbar-width: none;
+}
+
+.profile-modal::-webkit-scrollbar { display: none; }
+
+.profile-modal-overlay.open .profile-modal {
+  transform: translateY(0);
+}
+
+/* Ручка */
+.profile-modal::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  background: var(--border-bright);
+  border-radius: var(--r-full);
+  margin: var(--s-3) auto var(--s-1);
+}
+
+/* ── Заголовок ── */
+.pf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-2) var(--s-5) var(--s-4);
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.pf-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.pf-close {
+  background: var(--bg-surface);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-full);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.pf-close:hover { background: var(--error-dim); color: var(--error); }
+
+/* ── Тело ── */
+.pf-body {
+  padding: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding-bottom: calc(var(--s-8) + env(safe-area-inset-bottom));
+}
+
+/* ── Поле ── */
+.pf-field { display: flex; flex-direction: column; gap: var(--s-2); }
+
+.pf-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── Инпут ── */
+.pf-input {
+  width: 100%;
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-base);
+  border-radius: var(--r-lg);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+
+.pf-input:focus {
+  border-color: #6366f1;
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+/* ── Три инпута в ряд ── */
+.pf-row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-3);
+}
+
+.pf-row-3 .pf-input {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+}
+
+.pf-row-3 .pf-label { text-align: center; }
+
+/* ── Сегмент (пол, цель) ── */
+.pf-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+
+.pf-seg--3 { grid-template-columns: repeat(3, 1fr); }
+
+.pf-seg__btn {
+  padding: var(--s-3) var(--s-2);
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-base);
+  border-radius: var(--r-lg);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  text-align: center;
+}
+
+.pf-seg__btn:hover { border-color: #6366f1; color: #6366f1; }
+
+.pf-seg__btn.active {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: #6366f1;
+  color: #6366f1;
+}
+
+/* ── Уровни активности ── */
+.pf-activity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.pf-activity__btn {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-base);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--t-fast);
+}
+
+.pf-activity__btn:hover { border-color: #6366f1; }
+
+.pf-activity__btn.active {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: #6366f1;
+}
+
+.pf-activity__icon { font-size: 1.2rem; line-height: 1; flex-shrink: 0; }
+
+.pf-activity__name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pf-activity__desc {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.pf-activity__btn.active .pf-activity__name { color: #6366f1; }
+
+/* ── Превью расчёта ── */
+.pf-preview {
+  background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.06));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--r-xl);
+  padding: var(--s-4) var(--s-5);
+}
+
+.pf-preview__title {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6366f1;
+  margin-bottom: var(--s-3);
+}
+
+.pf-preview__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-2);
+}
+
+.pf-preview__item {
+  text-align: center;
+}
+
+.pf-preview__value {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.pf-preview__label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.pf-preview__empty {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--s-2) 0;
+}
+
+/* ── Кнопка сохранения ── */
+.pf-save-btn {
+  width: 100%;
+  padding: var(--s-4);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  border-radius: var(--r-xl);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  transition: opacity var(--t-fast), transform var(--t-fast);
+}
+
+.pf-save-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.pf-save-btn:active { transform: translateY(0); }
+
+/* ── Онбординг-баннер (первый запуск) ── */
+.onboarding-banner {
+  background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--r-xl);
+  padding: var(--s-4) var(--s-5);
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+
+.onboarding-banner:hover { background: rgba(99, 102, 241, 0.12); }
+
+.onboarding-banner__icon { font-size: 1.8rem; flex-shrink: 0; }
+
+.onboarding-banner__text {
+  flex: 1;
+}
+
+.onboarding-banner__title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #6366f1;
+  letter-spacing: -0.01em;
+}
+
+.onboarding-banner__sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}

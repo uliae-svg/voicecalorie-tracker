@@ -89,8 +89,7 @@ export async function analyzeFood(russianText) {
   // 3. Переставляем в формат «120g chicken» (Edamam лучше понимает)
   const englishText = reorderForEdamam(translated);
 
-
-  // 3. Запрос к Edamam
+  // 4. Запрос к Edamam
   const url = new URL(CONFIG.EDAMAM_BASE_URL);
   url.searchParams.set('app_id',         CONFIG.EDAMAM_APP_ID);
   url.searchParams.set('app_key',        CONFIG.EDAMAM_APP_KEY);
@@ -122,12 +121,42 @@ export async function analyzeFood(russianText) {
   }
 
   const nut = parsed.nutrients;
-  const get = (key) => Math.round(nut?.[key]?.quantity ?? 0);
+  const get    = (key) => Math.round(nut?.[key]?.quantity ?? 0);
+  const round1 = (key) => Math.round((nut?.[key]?.quantity ?? 0) * 10) / 10;
+
+  // ── Метки здоровья и диеты (верхний уровень ответа) ──
+  const rawHealth  = data.healthLabels ?? [];
+  const rawDiet    = data.dietLabels   ?? [];
+  const healthLabels = Array.isArray(rawHealth) ? rawHealth : Object.keys(rawHealth);
+  const dietLabels   = Array.isArray(rawDiet)   ? rawDiet   : Object.keys(rawDiet);
+
+  // ── Сахар (для предупреждения в UI) ──────────────────
+  const sugar = round1('SUGAR');
+
+  // ── Витамины ──────────────────────────────────────────
+  const vitamins = [
+    { key: 'vitA',   label: 'Витамин A', value: get('VITA_RAE'),  unit: 'мкг', dv: 900  },
+    { key: 'vitC',   label: 'Витамин C', value: get('VITC'),      unit: 'мг',  dv: 90   },
+    { key: 'vitD',   label: 'Витамин D', value: round1('VITD'),   unit: 'мкг', dv: 20   },
+    { key: 'vitE',   label: 'Витамин E', value: round1('TOCHPH'), unit: 'мг',  dv: 15   },
+    { key: 'vitK',   label: 'Витамин K', value: get('VITK1'),     unit: 'мкг', dv: 120  },
+    { key: 'vitB6',  label: 'B6',        value: round1('VITB6A'), unit: 'мг',  dv: 1.7  },
+    { key: 'vitB12', label: 'B12',       value: round1('VITB12'), unit: 'мкг', dv: 2.4  },
+  ];
+
+  // ── Минералы ──────────────────────────────────────────
+  const minerals = [
+    { key: 'calcium',   label: 'Кальций', value: get('CA'),     unit: 'мг', dv: 1300 },
+    { key: 'iron',      label: 'Железо',  value: round1('FE'),  unit: 'мг', dv: 18   },
+    { key: 'magnesium', label: 'Магний',  value: get('MG'),     unit: 'мг', dv: 420  },
+    { key: 'potassium', label: 'Калий',   value: get('K'),      unit: 'мг', dv: 4700 },
+    { key: 'sodium',    label: 'Натрий',  value: get('NA'),     unit: 'мг', dv: 2300 },
+  ];
 
   return {
     label:        russianText,
     englishLabel: parsed.food ?? englishText,
-    calories:     Math.round(nut?.ENERC_KCAL?.quantity ?? 0),
+    calories:     get('ENERC_KCAL'),
     protein:      get('PROCNT'),
     fat:          get('FAT'),
     carbs:        get('CHOCDF'),
@@ -135,6 +164,11 @@ export async function analyzeFood(russianText) {
     weight:       Math.round(parsed.weight ?? 0),
     timestamp:    new Date().toISOString(),
     id:           crypto.randomUUID(),
+    healthLabels,
+    dietLabels,
+    vitamins,
+    minerals,
+    sugar,
   };
 }
 
@@ -150,5 +184,9 @@ export async function analyzeFood(russianText) {
  *   weight: number,
  *   timestamp: string,
  *   id: string,
+ *   healthLabels: string[],
+ *   dietLabels: string[],
+ *   vitamins: Array<{key:string, label:string, value:number, unit:string, dv:number}>,
+ *   minerals: Array<{key:string, label:string, value:number, unit:string, dv:number}>,
  * }} NutritionResult
  */

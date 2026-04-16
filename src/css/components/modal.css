@@ -1,0 +1,245 @@
+/* ────────────────────────────────────────────────────────
+   Modal — микронутриенты  (VoiceFood)
+   ──────────────────────────────────────────────────────── */
+
+/* ── Overlay ── */
+.micro-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(26, 35, 50, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+}
+
+.micro-modal-overlay--in {
+  animation: overlay-in 0.28s ease forwards;
+}
+
+.micro-modal-overlay--out {
+  animation: overlay-out 0.22s ease forwards;
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes overlay-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ── Sheet ── */
+.micro-modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 88dvh;
+  background: var(--bg-card);
+  border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(100%);
+  box-shadow:
+    0 -8px 40px rgba(0, 0, 0, 0.12),
+    0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.micro-modal-overlay--in .micro-modal {
+  animation: sheet-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.04s both;
+}
+
+.micro-modal-overlay--out .micro-modal {
+  animation: sheet-out 0.22s ease both;
+}
+
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes sheet-out {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+
+/* ── Handle ── */
+.micro-modal::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--border-base);
+  margin: var(--s-3) auto var(--s-1);
+  flex-shrink: 0;
+}
+
+/* ── Header ── */
+.micro-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--s-2) var(--s-5) var(--s-4);
+  border-bottom: 1px solid var(--border-dim);
+  flex-shrink: 0;
+  gap: var(--s-3);
+}
+
+.micro-modal__title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.micro-modal__sub {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.micro-modal__close {
+  background: var(--bg-surface);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.micro-modal__close:hover {
+  background: var(--error-dim);
+  color: var(--error);
+}
+
+/* ── Badges in modal ── */
+.micro-modal__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--border-dim);
+  flex-shrink: 0;
+}
+
+/* ── Scrollable body ── */
+.micro-modal__section {
+  padding: var(--s-4) var(--s-5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.micro-modal__section + .micro-modal__section {
+  border-top: 1px solid var(--border-dim);
+}
+
+.micro-modal__section-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--s-3);
+}
+
+/* ── Micro rows ── */
+.micro-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.micro-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 4px var(--s-2);
+  align-items: center;
+}
+
+.micro-row__info {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.micro-row__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.micro-row__value {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.micro-row--warn .micro-row__value {
+  color: var(--error);
+  font-weight: 700;
+}
+
+.micro-bar {
+  grid-column: 1;
+  height: 6px;
+  background: var(--border-dim);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+
+.micro-bar__fill {
+  height: 100%;
+  border-radius: var(--r-full);
+  width: 0%;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.micro-bar__fill--vit  { background: linear-gradient(90deg, #10b981, #34d399); }
+.micro-bar__fill--min  { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.micro-bar__fill--warn { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+.micro-row__pct {
+  grid-row: 1 / 3;
+  grid-column: 2;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-align: right;
+  min-width: 34px;
+}
+
+.micro-row--warn .micro-row__pct { color: var(--error); }
+
+.micro-empty {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--s-4) 0;
+}
+
+/* ── Note ── */
+.micro-modal__note {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--s-3) var(--s-5) var(--s-5);
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-dim);
+}

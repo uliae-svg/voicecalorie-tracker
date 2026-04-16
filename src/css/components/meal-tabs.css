@@ -1,97 +1,130 @@
 /* ────────────────────────────────────────────────────────
-   Meal Tabs — переключатель приёма пищи
+   Meal Tabs  (Clean Dashboard — как в референсе)
    ──────────────────────────────────────────────────────── */
 
-.meal-tabs {
+.meal-tabs-wrap {
+  background: var(--bg-card);
+  border-radius: var(--r-xl);
+  padding: var(--s-4);
+  box-shadow: var(--shadow-card);
   display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.meal-tabs-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+.meal-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--s-2);
-  justify-content: center;
-  flex-wrap: wrap;
-  padding: 0 var(--s-4);
 }
 
 .meal-tab {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--s-1);
-  padding: var(--s-2) var(--s-4);
-  border-radius: var(--r-full);
-  border: 1px solid var(--border-base);
-  background: var(--bg-card);
-  color: var(--text-secondary);
+  gap: 4px;
+  padding: var(--s-3) var(--s-2);
+  border-radius: var(--r-lg);
+  border: 2px solid var(--border-dim);
+  background: var(--bg-base);
+  color: var(--text-muted);
   font-family: var(--font-body);
-  font-size: 0.82rem;
-  font-weight: 500;
+  font-size: 0.72rem;
+  font-weight: 700;
   cursor: pointer;
-  transition:
-    color        var(--t-base),
-    border-color var(--t-base),
-    background   var(--t-base),
-    box-shadow   var(--t-base),
-    transform    var(--t-fast);
-  white-space: nowrap;
   outline: none;
+  transition:
+    color        var(--t-fast),
+    border-color var(--t-fast),
+    background   var(--t-fast),
+    transform    var(--t-fast);
 }
 
 .meal-tab:hover {
   color: var(--text-primary);
-  border-color: var(--border-bright);
-  background: var(--bg-card-hover);
+  border-color: var(--border-base);
 }
 
-.meal-tab:active {
-  transform: scale(0.96);
-}
+.meal-tab:active { transform: scale(0.95); }
 
-/* Активная вкладка */
-.meal-tab.active {
-  color: var(--bg-base);
-  background: var(--accent);
-  border-color: var(--accent);
-  box-shadow: 0 0 16px var(--accent-glow-sm);
-}
-
-.meal-tab.active:hover {
-  background: var(--accent-bright);
-  border-color: var(--accent-bright);
-}
-
-/* Иконка */
 .meal-tab__icon {
-  font-size: 0.95em;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
-/* ── Группировка в дневнике ── */
+.meal-tab__name { line-height: 1; }
 
-.log-meal-group + .log-meal-group {
-  margin-top: var(--s-5);
+/* Активная — цвет зависит от приёма пищи */
+.meal-tab.active[data-meal="breakfast"] {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: rgba(249, 115, 22, 0.35);
+  color: var(--meal-breakfast);
 }
+
+.meal-tab.active[data-meal="lunch"] {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: var(--meal-lunch);
+}
+
+.meal-tab.active[data-meal="dinner"] {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.35);
+  color: var(--meal-dinner);
+}
+
+.meal-tab.active[data-meal="snack"] {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: var(--meal-snack);
+}
+
+/* ── Meal group header в дневнике ── */
+
+.log-meal-group + .log-meal-group { margin-top: var(--s-5); }
 
 .log-meal-header {
   display: flex;
   align-items: center;
-  gap: var(--s-2);
-  margin-bottom: var(--s-2);
-  padding: 0 var(--s-1);
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
 }
 
-.log-meal-header__icon {
-  font-size: 0.85rem;
+.log-meal-header__badge {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
+
+.log-meal-header__badge--breakfast { background: rgba(249, 115, 22, 0.12); }
+.log-meal-header__badge--lunch     { background: rgba(245, 158, 11, 0.12); }
+.log-meal-header__badge--dinner    { background: rgba(99, 102, 241, 0.12); }
+.log-meal-header__badge--snack     { background: rgba(16, 185, 129, 0.12); }
 
 .log-meal-header__name {
-  font-family: var(--font-display);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .log-meal-header__cal {
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-secondary);
 }

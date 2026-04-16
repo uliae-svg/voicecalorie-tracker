@@ -1,77 +1,86 @@
 /* ────────────────────────────────────────────────────────
-   Design Tokens — VoiceCalorie
+   Design Tokens — GastroVibe Pro  (Clean Dashboard)
    ──────────────────────────────────────────────────────── */
 
 :root {
-  /* Background layers */
-  --bg-base:        #060b06;
-  --bg-surface:     #0b150b;
-  --bg-card:        #0f1d0f;
-  --bg-card-hover:  #132213;
-  --bg-input:       #0d190d;
+  /* ── Backgrounds ── */
+  --bg-base:       #f4f6f8;
+  --bg-surface:    #eef0f3;
+  --bg-card:       #ffffff;
+  --bg-card-hover: #fafbfc;
 
-  /* Borders */
-  --border-dim:     #162916;
-  --border-base:    #1e3d1e;
-  --border-bright:  #2d5e2d;
+  /* ── Borders ── */
+  --border-dim:    #eef0f3;
+  --border-base:   #e2e6ea;
+  --border-bright: #cbd2da;
 
-  /* Accent — phosphor green */
-  --accent:         #10b981;
-  --accent-bright:  #34d399;
-  --accent-dim:     rgba(16, 185, 129, 0.12);
-  --accent-glow:    rgba(16, 185, 129, 0.35);
-  --accent-glow-sm: rgba(16, 185, 129, 0.15);
+  /* ── Accent — teal (играем с цветом) ── */
+  --accent:         #0ea5e9;
+  --accent-bright:  #38bdf8;
+  --accent-dim:     rgba(14, 165, 233, 0.1);
+  --accent-glow:    rgba(14, 165, 233, 0.25);
+  --accent-glow-sm: rgba(14, 165, 233, 0.12);
 
-  /* Text */
-  --text-primary:   #d4edd9;
-  --text-secondary: #5d8a65;
-  --text-muted:     #2e4f33;
+  /* ── Ring goal ── */
+  --ring-circumference: 552.92; /* 2π × 88 */
 
-  /* Macros palette */
-  --cal:     #fbbf24;
-  --cal-dim: rgba(251, 191, 36, 0.12);
-  --prot:    #34d399;
-  --prot-dim: rgba(52, 211, 153, 0.12);
-  --fat:      #f87171;
-  --fat-dim:  rgba(248, 113, 113, 0.12);
-  --carb:     #818cf8;
-  --carb-dim: rgba(129, 140, 248, 0.12);
+  /* ── Text ── */
+  --text-primary:   #1a2332;
+  --text-secondary: #64748b;
+  --text-muted:     #94a3b8;
 
-  /* Status */
-  --error:     #f87171;
-  --error-dim: rgba(248, 113, 113, 0.1);
+  /* ── Macro colors ── */
+  --cal:      #f97316;
+  --cal-dim:  rgba(249, 115, 22, 0.1);
+  --prot:     #3b82f6;
+  --prot-dim: rgba(59, 130, 246, 0.1);
+  --fat:      #f59e0b;
+  --fat-dim:  rgba(245, 158, 11, 0.1);
+  --carb:      #a855f7;
+  --carb-dim:  rgba(168, 85, 247, 0.1);
+  --fiber:     #10b981;
+  --fiber-dim: rgba(16, 185, 129, 0.1);
 
-  /* Typography */
-  --font-display: 'Chakra Petch', sans-serif;
-  --font-mono:    'JetBrains Mono', monospace;
-  --font-body:    'DM Sans', sans-serif;
+  /* ── Meal icon colors ── */
+  --meal-breakfast: #f97316;
+  --meal-lunch:     #f59e0b;
+  --meal-dinner:    #6366f1;
+  --meal-snack:     #10b981;
 
-  /* Spacing scale */
-  --s-1:  4px;
-  --s-2:  8px;
-  --s-3:  12px;
-  --s-4:  16px;
-  --s-5:  20px;
-  --s-6:  24px;
-  --s-8:  32px;
-  --s-10: 40px;
-  --s-12: 48px;
-  --s-16: 64px;
+  /* ── Status ── */
+  --error:     #ef4444;
+  --error-dim: rgba(239, 68, 68, 0.08);
 
-  /* Border radii */
-  --r-sm:   6px;
+  /* ── Typography ── */
+  --font-display: 'Nunito', system-ui, sans-serif;
+  --font-body:    'Nunito', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* ── Spacing ── */
+  --s-1:  4px;  --s-2:  8px;  --s-3:  12px; --s-4:  16px;
+  --s-5:  20px; --s-6:  24px; --s-8:  32px; --s-10: 40px;
+  --s-12: 48px; --s-16: 64px;
+
+  /* ── Radii ── */
+  --r-sm:   8px;
   --r-md:   12px;
-  --r-lg:   18px;
-  --r-xl:   24px;
+  --r-lg:   16px;
+  --r-xl:   20px;
+  --r-2xl:  28px;
   --r-full: 9999px;
 
-  /* Transitions */
-  --t-fast: 150ms ease;
-  --t-base: 250ms ease;
-  --t-slow: 400ms ease;
+  /* ── Transitions ── */
+  --t-fast: 130ms ease;
+  --t-base: 220ms ease;
+  --t-slow: 380ms cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Shadows */
-  --shadow-card:  0 2px 16px rgba(0, 0, 0, 0.5);
-  --shadow-glow:  0 0 48px var(--accent-glow);
-  --shadow-inset: inset 0 1px 0 rgba(16, 185, 129, 0.08);
+  /* ── Shadows ── */
+  --shadow-card:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-float:
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 16px 48px rgba(0, 0, 0, 0.08);
+  --shadow-btn:
+    0 4px 14px rgba(14, 165, 233, 0.35);
 }

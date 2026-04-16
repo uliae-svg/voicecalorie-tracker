@@ -1,14 +1,11 @@
 /* ────────────────────────────────────────────────────────
-   Daily Log Component
+   Daily Log  (Clean Dashboard — стиль как в референсе)
    ──────────────────────────────────────────────────────── */
 
 .log-section {
-  margin-top: var(--s-10);
-  padding: 0 var(--s-4) var(--s-16);
-  max-width: 540px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--s-2) var(--s-4) var(--s-16);
 }
 
 .log-header {
@@ -16,23 +13,21 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--s-4);
-  margin-bottom: var(--s-4);
+  margin-bottom: var(--s-5);
   padding-bottom: var(--s-3);
   border-bottom: 1px solid var(--border-dim);
 }
 
 .log-title {
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .log-date {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: capitalize;
 }
@@ -41,35 +36,136 @@
 .log-list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
 }
 
 .log-empty {
-  font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--text-muted);
   text-align: center;
-  padding: var(--s-8) 0;
+  padding: var(--s-10) 0;
 }
 
-/* ── Log item ── */
+/* ── Swipe shell ── */
+.log-item-shell {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  max-height: 200px;
+  margin-bottom: var(--s-3);
+}
+
+.log-item-shell .log-item {
+  position: relative;
+  z-index: 2;
+  border-radius: var(--r-lg);
+  margin-bottom: 0;
+}
+
+/* ── Swipe actions ── */
+.swipe-action {
+  position: absolute;
+  top: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0 var(--s-4);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  user-select: none;
+  z-index: 1;
+}
+
+.swipe-action--delete {
+  right: 0;
+  background: var(--error);
+  border-radius: 0 var(--r-lg) var(--r-lg) 0;
+}
+
+.swipe-action--edit {
+  left: 0;
+  background: var(--accent);
+  border-radius: var(--r-lg) 0 0 var(--r-lg);
+}
+
+/* ── Meal picker ── */
+.log-item-meal-picker {
+  display: flex;
+  gap: var(--s-1);
+  padding: var(--s-2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-top: none;
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  margin-top: -6px;
+  padding-top: calc(var(--s-2) + 6px);
+  animation: picker-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.log-item-meal-picker[hidden] { display: none; }
+
+@keyframes picker-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.log-item-meal-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--s-2) var(--s-1);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-base);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+
+.log-item-meal-btn span { font-size: 1rem; line-height: 1; }
+
+.log-item-meal-btn:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Log item name row ── */
+.log-item__name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.log-item__badge-wrap {
+  flex-shrink: 0;
+}
+
+/* ── Log item — стиль как в референсе ── */
 .log-item {
   display: flex;
   align-items: center;
-  gap: var(--s-4);
-  padding: var(--s-3) var(--s-4);
-  border-radius: var(--r-sm);
-  background: var(--bg-surface);
-  border: 1px solid transparent;
-  transition:
-    background     var(--t-fast),
-    border-color   var(--t-fast);
-  position: relative;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--t-fast), border-color var(--t-fast);
+  cursor: default;
+  user-select: none;
 }
 
 .log-item:hover {
-  background: var(--bg-card);
-  border-color: var(--border-dim);
+  border-color: var(--border-base);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
 .log-item__left {
@@ -77,64 +173,84 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--s-1);
 }
 
 .log-item__name {
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 800;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: -0.01em;
 }
+
+/* Макросы инлайн с цветными иконками — как в референсе */
+.log-item__macros-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.lm {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.lm__icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+
+.lm--cal  .lm__icon { background: var(--cal-dim);  color: var(--cal); }
+.lm--prot .lm__icon { background: var(--prot-dim); color: var(--prot); }
+.lm--fat  .lm__icon { background: var(--fat-dim);  color: var(--fat); }
+.lm--carb .lm__icon { background: var(--carb-dim); color: var(--carb); }
+
+.lm--cal  { color: var(--cal); }
+.lm--prot { color: var(--prot); }
+.lm--fat  { color: var(--fat); }
+.lm--carb { color: var(--carb); }
 
 .log-item__time {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: var(--text-muted);
 }
 
 .log-item__right {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+  align-items: center;
   flex-shrink: 0;
-}
-
-.log-item__cal {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--cal);
-}
-
-.log-item__macros {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: var(--text-muted);
-  letter-spacing: 0.03em;
 }
 
 .log-item__delete {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
   padding: var(--s-1) var(--s-2);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-md);
   transition: color var(--t-fast), background var(--t-fast);
   opacity: 0;
-  flex-shrink: 0;
 }
 
-.log-item:hover .log-item__delete {
-  opacity: 1;
-}
+.log-item:hover .log-item__delete { opacity: 1; }
 
 .log-item__delete:hover {
   color: var(--error);

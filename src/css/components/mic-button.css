@@ -1,103 +1,92 @@
 /* ────────────────────────────────────────────────────────
-   Mic Button Component
+   Mic Button  (Clean Dashboard)
    ──────────────────────────────────────────────────────── */
 
 .mic-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--s-5);
-  padding: var(--s-10) 0 var(--s-8);
+  gap: var(--s-3);
+  padding: var(--s-3) 0 var(--s-2);
 }
 
 .mic-wrapper {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 96px;
+  height: 96px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* ── Ripple rings ── */
+/* Ripple */
 .ripple {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 1.5px solid var(--accent);
+  border: 2px solid var(--accent);
   opacity: 0;
   pointer-events: none;
 }
 
 .mic-btn.listening .ripple {
-  animation: ripple-expand 2s ease-out infinite;
+  animation: ripple-clean 2s ease-out infinite;
 }
 
 .mic-btn.listening .ripple:nth-child(2) { animation-delay: 0.65s; }
 .mic-btn.listening .ripple:nth-child(3) { animation-delay: 1.3s; }
 
-@keyframes ripple-expand {
-  0%   { transform: scale(1);   opacity: 0.7; }
-  100% { transform: scale(2.2); opacity: 0; }
+@keyframes ripple-clean {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  100% { transform: scale(2);   opacity: 0; }
 }
 
-/* ── Button itself ── */
+/* Button */
 .mic-btn {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  border: 1.5px solid var(--border-base);
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  cursor: pointer;
+  border: none;
+  background: var(--accent);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    color       var(--t-base),
-    border-color var(--t-base),
-    box-shadow  var(--t-base),
-    background  var(--t-base),
-    transform   var(--t-fast);
-  outline: none;
   z-index: 1;
-  box-shadow: var(--shadow-card);
+  outline: none;
+  box-shadow: var(--shadow-btn);
+  transition: transform var(--t-fast), box-shadow var(--t-base), background var(--t-base);
 }
 
 .mic-btn:hover {
-  color: var(--accent);
-  border-color: var(--border-bright);
-  background: var(--bg-card-hover);
-  transform: scale(1.04);
+  transform: scale(1.06) translateY(-2px);
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.45);
 }
 
 .mic-btn:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
 }
 
-/* Listening state */
 .mic-btn.listening {
-  color: var(--accent-bright);
-  border-color: var(--accent);
-  background: var(--accent-dim);
-  box-shadow: 0 0 0 3px var(--accent-glow-sm), var(--shadow-glow);
+  background: var(--accent-bright);
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15), var(--shadow-btn);
 }
 
-/* Processing state */
 .mic-btn.processing {
+  background: var(--border-base);
   color: var(--text-muted);
-  border-color: var(--border-dim);
+  box-shadow: none;
   cursor: not-allowed;
-  animation: pulse-dim 1.4s ease-in-out infinite;
+  animation: pulse-btn 1.5s ease-in-out infinite;
 }
 
-@keyframes pulse-dim {
+@keyframes pulse-btn {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.4; }
+  50%       { opacity: 0.5; }
 }
 
-/* ── Mic icon ── */
 .mic-icon {
   display: flex;
   align-items: center;
@@ -105,35 +94,18 @@
   transition: transform var(--t-base);
 }
 
-.mic-btn.listening .mic-icon {
-  transform: scale(1.1);
-}
+.mic-btn.listening .mic-icon { transform: scale(1.1); }
 
-/* ── Hint text ── */
+/* Hints */
 .mic-hint {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 400;
-  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
   text-align: center;
-  letter-spacing: 0.01em;
   transition: color var(--t-base);
   min-height: 1.4em;
 }
 
-.mic-hint--sub {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-top: -var(--s-3);
-}
+.mic-hint--sub { display: none; } /* в этом дизайне убираем */
 
-.mic-hint--sub em {
-  color: var(--text-secondary);
-  font-style: normal;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-}
-
-.mic-btn.listening ~ .mic-hint {
-  color: var(--accent);
-}
+.mic-btn.listening ~ .mic-hint { color: var(--accent); }
