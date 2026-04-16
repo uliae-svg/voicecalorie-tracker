@@ -66,6 +66,12 @@ img, svg { display: block; }
   letter-spacing: -0.01em;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
 .reset-btn {
   background: none;
   border: 1px solid var(--border-base);
