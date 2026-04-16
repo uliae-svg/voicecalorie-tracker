@@ -1,6 +1,6 @@
 # Technical Documentation — VoiceFood
 
-**Version:** 4.0  
+**Version:** 5.0  
 **Stack:** Vanilla JS (ES2024) · Vite 8 · Web Speech API · Edamam · Groq (Llama 3.3)  
 **Last updated:** April 2026
 
@@ -18,7 +18,8 @@ src/js/
 ├── speech.js          # Инфраструктура: обёртка над Web Speech API
 ├── nutrition.js       # Бизнес-логика: перевод + Edamam API, микронутриенты, метки
 ├── storage.js         # Персистентность: CRUD + calcTotals (КБЖУ + клетчатка + микро)
-├── ui.js              # Представление: рендеринг, бейджи, модал, AI-блок
+├── profile.js         # Профиль: хранение данных пользователя + расчёт целей КБЖУ
+├── ui.js              # Представление: рендеринг, бейджи, модал, AI-блок, профиль
 ├── swipe.js           # Взаимодействие: свайп-жесты для записей дневника
 ├── ai-analysis.js     # AI: формирование промпта + Groq SSE-стриминг
 └── main.js            # Точка входа: связывает модули, обработчики событий
@@ -28,6 +29,9 @@ src/js/
 
 ```
 Пользователь
+    │
+    ▼
+[profile.js]         getProfile() → calcGoals() → персональные цели КБЖУ
     │
     ▼
 [speech.js]          SpeechRecognizer.start() → onResult(text)
@@ -41,9 +45,10 @@ src/js/
     │
     ├──▶ [storage.js]            addEntry(result) → localStorage
     │
-    └──▶ [ui.js]                 renderResult() · renderLog() · updateTotals()
+    └──▶ [ui.js]                 renderResult() · renderLog() · updateTotals(totals, goals)
                                   ↳ openNutritionModal()  — по клику «Микронутриенты»
                                   ↳ renderDailyMicros()   — витамины/минералы за день
+                                  ↳ openProfileModal()    — по клику на аватар
 
 [ai-analysis.js]     analyzeDiet(log, totals) — по клику «🧠 Анализ от диетолога»
     ├─ buildPrompt()    формирует текстовый промпт из дневника
@@ -207,25 +212,94 @@ Groq предоставляет бесплатный тир с лимитом ~1
 
 ---
 
-## 5. Микронутриенты и метки здоровья
+## 4. Профиль пользователя (profile.js)
 
-### 3.1 Цветовая схема бейджей
+### 4.1 Хранение
 
-Бейджи рендерятся через CSS-переменные `--badge-bg` и `--badge-color`, что позволяет использовать один класс `.health-badge` для всех цветов:
+Профиль сохраняется в `localStorage` под ключом `voicefood_profile_v1`:
+
+```ts
+type Profile = {
+  name:     string;                                   // имя пользователя
+  gender:   'f' | 'm';                               // пол
+  age:      number;                                   // лет
+  height:   number;                                   // см
+  weight:   number;                                   // кг
+  activity: 1.2 | 1.375 | 1.55 | 1.725 | 1.9;       // коэффициент активности
+  goal:     'loss' | 'maintain' | 'gain';             // цель
+}
+```
+
+### 4.2 Расчёт целей — формула Миффлина-Сан Жеора
 
 ```js
-// ui.js — BADGE_MAP
-const BADGE_MAP = {
-  VEGAN:         { label: 'Vegan',        bg: '#dcfce7', color: '#15803d' },
-  HIGH_PROTEIN:  { label: 'High Protein', bg: '#dbeafe', color: '#1d4ed8' },
-  LOW_CARB:      { label: 'Low Carb',     bg: '#ffedd5', color: '#c2410c' },
-  DAIRY_FREE:    { label: 'Dairy Free',   bg: '#f3e8ff', color: '#7e22ce' },
-  KETO_FRIENDLY: { label: 'Keto',         bg: '#fef08a', color: '#713f12' },
-  // ...и другие
+// BMR (базовый обмен веществ)
+const bmr = gender === 'f'
+  ? 10 * weight + 6.25 * height - 5 * age - 161
+  : 10 * weight + 6.25 * height - 5 * age + 5;
+
+// TDEE (с учётом активности)
+const tdee = bmr * activity;
+
+// Коррекция на цель
+const calMultiplier = goal === 'loss' ? 0.80 : goal === 'gain' ? 1.15 : 1.0;
+const calories = Math.round(tdee * calMultiplier);
+
+// Белки: г/кг веса (больше при дефиците — сохранение мышц)
+const protPerKg = goal === 'loss' ? 2.0 : goal === 'gain' ? 1.8 : 1.6;
+const protein   = Math.round(weight * protPerKg);
+
+// Жиры: 30% от калорий
+const fat = Math.round((calories * 0.30) / 9);
+
+// Углеводы: остаток (не менее 50г)
+const carbs = Math.max(50, Math.round((calories - protein * 4 - fat * 9) / 4));
+
+// Клетчатка: норма ВОЗ по полу
+const fiber = gender === 'f' ? 25 : 38;
+```
+
+Если профиль не заполнен или содержит неполные данные, `calcGoals` возвращает стандартные значения `{ calories: 2000, protein: 150, fat: 65, carbs: 250, fiber: 30 }`.
+
+### 4.3 Применение целей в UI
+
+`updateTotals(totals, goals)` принимает цели вторым аргументом. Все прогресс-бары, кольцо калорий и подписи «X г цель» обновляются динамически при каждом вызове:
+
+```js
+// main.js
+let goals = calcGoals(profile);
+
+function refreshUI() {
+  updateTotals(calcTotals(log), goals);
+  renderLog(log, { ... });
+}
+```
+
+При сохранении профиля `goals` пересчитывается немедленно и `refreshUI()` применяет новые значения без перезагрузки страницы.
+
+### 4.4 Онбординг
+
+При первом запуске (профиль отсутствует в localStorage) отображается баннер-подсказка. После первого сохранения профиля баннер скрывается навсегда.
+
+---
+
+## 5. Микронутриенты и метки здоровья
+
+### 5.1 Цветовая схема бейджей
+
+Бейджи рендерятся через CSS-классы `badge--green`, `badge--blue`, `badge--orange`, `badge--purple`:
+
+```js
+const BADGE_CONFIG = {
+  VEGAN:         { color: 'green',  label: 'Веган' },
+  HIGH_PROTEIN:  { color: 'blue',   label: 'Много белка' },
+  LOW_CARB:      { color: 'orange', label: 'Мало углев.' },
+  DAIRY_FREE:    { color: 'purple', label: 'Без лактозы' },
+  // ...
 };
 ```
 
-### 3.2 Логика предупреждений
+### 5.2 Логика предупреждений
 
 Предупреждения основаны на **реальных числовых значениях**, а не на наличии или отсутствии меток. Это исключает ложные срабатывания (например, мясо не имеет метки `SUGAR_CONSCIOUS`, но сахара в нём нет):
 
@@ -241,29 +315,20 @@ if (sodiumItem.value > 600) {
 }
 ```
 
-### 3.3 Модальное окно микронутриентов
+### 5.3 Модальное окно микронутриентов
 
-Модал реализован как **singleton**: создаётся один раз при первом вызове и переиспользуется. Это избегает накопления DOM-узлов при многократном открытии:
+Модал создаётся через `document.createElement`, добавляется в `body` и удаляется при закрытии с CSS-анимацией:
 
 ```js
-let modal = null;
-
-function getModal() {
-  if (modal) return modal;       // уже создан — переиспользуем
-  modal = document.createElement('div');
-  // ...
-  document.body.appendChild(modal);
-  return modal;
-}
+modal.classList.add('micro-modal-overlay--out');
+modal.addEventListener('animationend', () => modal.remove(), { once: true });
 ```
-
-Прогресс-бары нутриентов анимируются через CSS `transition: width` с задержкой через `requestAnimationFrame`, обеспечивая плавное появление при открытии модала.
 
 ---
 
 ## 6. Свайп-жесты (swipe.js)
 
-### 4.1 Принцип работы
+### 6.1 Принцип работы
 
 Функция `makeSwipeable(shell, picker, callbacks)` подключается к каждому элементу дневника. Она обрабатывает как тач-события (мобильные), так и мышь (десктоп) через единый обработчик.
 
@@ -273,7 +338,7 @@ function getModal() {
 Свайп вправо > 55px → открыть пикер приёма пищи (синий фон)
 ```
 
-### 4.2 Управление памятью — AbortController
+### 6.2 Управление памятью — AbortController
 
 **Проблема:** `window.addEventListener('mousemove')` и `window.addEventListener('mouseup')` добавляются при каждом рендере списка и никогда не удалялись — утечка памяти.
 
@@ -283,27 +348,23 @@ function getModal() {
 const ac = new AbortController();
 const { signal } = ac;
 
-// Следим за удалением shell из DOM
 new MutationObserver((_, obs) => {
   if (!document.contains(shell)) {
-    ac.abort();      // снимаем все глобальные слушатели
+    ac.abort();
     obs.disconnect();
   }
 }).observe(document.body, { childList: true, subtree: true });
 
-// Все глобальные слушатели получают { signal }
 window.addEventListener('mousemove', handler, { signal });
 window.addEventListener('mouseup',   handler, { signal });
 document.addEventListener('click',   handler, { signal });
 ```
 
-Это паттерн 2024+ (AbortController для EventListener появился в Chrome 88, Firefox 87).
-
 ---
 
 ## 7. Безопасность
 
-### 5.1 Защита API-ключей
+### 7.1 Защита API-ключей
 
 Ключи не хранятся в коде. Vite при сборке статически подставляет значения `import.meta.env.VITE_*` в бандл. Переменные без префикса `VITE_` не попадают в клиентский код.
 
@@ -314,7 +375,7 @@ document.addEventListener('click',   handler, { signal });
 
 > Ключи, встроенные в JS-бандл, видны в DevTools. Для продакшена рекомендуется проксировать запросы через бэкенд.
 
-### 5.2 Защита от XSS
+### 7.2 Защита от XSS
 
 Весь пользовательский ввод и данные из API экранируются функцией `escHtml()` перед вставкой в `innerHTML`:
 
@@ -328,13 +389,11 @@ function escHtml(str) {
 }
 ```
 
-Числовые значения нутриентов (результат `Math.round`) в `innerHTML` не экранируются — они не могут содержать HTML-теги по природе.
-
 ---
 
 ## 8. Хранение данных
 
-### 6.1 Структура записи
+### 8.1 Структура записи
 
 ```ts
 type NutritionEntry = {
@@ -355,21 +414,13 @@ type NutritionEntry = {
   vitamins:     Nutrient[];    // [{key, label, value, unit, dv}, ...]
   minerals:     Nutrient[];    // [{key, label, value, unit, dv}, ...]
 }
-
-type Nutrient = {
-  key:   string;   // 'vitA', 'calcium', ...
-  label: string;   // 'Витамин A', 'Кальций', ...
-  value: number;   // количество
-  unit:  string;   // 'мкг', 'мг'
-  dv:    number;   // дневная норма (для расчёта %)
-}
 ```
 
-Все записи хранятся в одном ключе `voicecalorie_log_v1` как JSON-массив.
+Все записи хранятся в ключе `voicecalorie_log_v1`. Профиль — в `voicefood_profile_v1`.
 
-### 6.2 Управление данными
+### 8.2 Управление данными
 
-- **Фильтрация по дате** использует локальный часовой пояс пользователя (не UTC), чтобы запись в 23:50 по московскому времени попадала в правильный день.
+- **Фильтрация по дате** использует локальный часовой пояс пользователя (не UTC).
 - **Ротация** — записи старше 30 дней удаляются автоматически при каждой записи.
 - **Обновление записи** — `updateEntry(id, patch)` делает иммутабельный merge: `{ ...entry, ...patch }`.
 
@@ -379,59 +430,29 @@ type Nutrient = {
 
 ### 9.1 Состояние в main.js
 
-Вся навигация строится вокруг одной переменной `selectedDate: Date`. При переходе на другой день меняется только она — `loadLog()` и `refreshUI()` автоматически обновляют весь UI:
-
 ```js
-let selectedDate = new Date(); // текущая просматриваемая дата
+let selectedDate = new Date();
 
 function loadLog() {
   return getLogForDate(dateKeyOf(selectedDate));
 }
-
-function isToday() {
-  return dateKeyOf(selectedDate) === dateKeyOf(new Date());
-}
 ```
 
-### 9.2 Новые функции в storage.js
+### 9.2 Сохранение в прошедшую дату
 
 ```js
-// Преобразует Date → 'YYYY-MM-DD' в локальном часовом поясе
-export function dateKeyOf(date) { ... }
-
-// Возвращает записи за конкретный день
-export function getLogForDate(dateKey) {
-  return readAll().filter((e) => localDateOf(e.timestamp) === dateKey);
-}
-
-// Удаляет записи за конкретный день
-export function clearDate(dateKey) { ... }
-```
-
-`getTodayLog()` и `clearToday()` теперь просто вызывают `getLogForDate(todayKey())` и `clearDate(todayKey())`.
-
-### 9.3 Сохранение в прошедшую дату
-
-Когда пользователь добавляет запись на прошедшую дату, timestamp подменяется на выбранный день с текущим временем:
-
-```js
-let entry = { ...nutrition, meal: currentMeal };
 if (!isToday()) {
   const ts = new Date(selectedDate);
   ts.setHours(new Date().getHours(), new Date().getMinutes(), 0, 0);
   entry = { ...entry, timestamp: ts.toISOString() };
 }
-addEntry(entry);
 ```
 
-Это позволяет записи «лежать» в правильном дне при фильтрации по `localDateOf(timestamp)`.
+### 9.3 UX-детали
 
-### 9.4 UX-детали
-
-- Кнопка **›** (`nextDayBtn`) заблокирована (`disabled`) на сегодняшней дате — нельзя уйти в будущее.
+- Кнопка **›** заблокирована на сегодняшней дате — нельзя уйти в будущее.
 - Метка под датой: **Сегодня** (синяя) / **Вчера** / **N дн. назад** (серая).
-- При переходе между датами очищаются `resultContainer`, `transcriptBox` и `aiResponse` — интерфейс не показывает результат предыдущего дня.
-- Диалог сброса дневника показывает имя выбранной даты: «Очистить за 14 апреля?».
+- При переходе между датами очищаются `resultContainer`, `transcriptBox` и `aiResponse`.
 
 ---
 
@@ -445,10 +466,11 @@ addEntry(entry);
 | localStorage | IndexedDB | Достаточно для объёма данных MVP, проще в поддержке |
 | Vite без TypeScript | TypeScript | Снижение порога входа; JSDoc-аннотации дают базовую типизацию |
 | AbortController для свайпов | removeEventListener | Один вызов `abort()` снимает все слушатели; нет риска утечки |
-| Singleton-модал | Новый элемент на каждый вызов | Нет накопления DOM-узлов; анимация переиспользуется |
 | Числовые пороги для предупреждений | Метки API (SUGAR_CONSCIOUS) | Метки присваиваются непоследовательно; числа точны |
 | Groq (бесплатный) | OpenAI GPT-4 | Llama 3.3 70B бесплатно; скорость генерации в 3-5 раз выше GPT-4 |
 | SSE-стриминг для AI | Ждать полного ответа | Пользователь видит текст мгновенно; UX значительно лучше |
 | Промпт на русском | Промпт на английском | Модель точнее соблюдает формат ответа при совпадении языка |
 | `selectedDate` в main.js | URL-параметр или роутер | Нет необходимости в роутинге; SPA, дата живёт только в памяти |
-| Подмена timestamp при вводе прошлой даты | Отдельное поле `date` | Вся фильтрация уже построена на `localDateOf(timestamp)`; менять не нужно |
+| Подмена timestamp при вводе прошлой даты | Отдельное поле `date` | Вся фильтрация уже построена на `localDateOf(timestamp)` |
+| Миффлин-Сан Жеор для расчёта КБЖУ | Харрис-Бенедикт | Более точная для современных людей; рекомендована ВОЗ |
+| calcGoals с fallback на дефолты | Обязательный профиль | Приложение работает сразу без онбординга; профиль опционален |
