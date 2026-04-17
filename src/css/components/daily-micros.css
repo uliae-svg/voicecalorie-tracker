@@ -187,7 +187,7 @@
 .micros-tip-text::after {
   content: '▌';
   display: inline-block;
-  animation: blink 0.8s step-end infinite;
+  animation: blink 0.8s step-end infinite; /* @keyframes blink defined in ai-card.css */
   color: #6366f1;
   margin-left: 1px;
 }

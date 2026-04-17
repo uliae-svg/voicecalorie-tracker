@@ -345,12 +345,7 @@ export function finalizeAiResponse() {
   const el = document.getElementById('aiText');
   if (!el) return;
 
-  // **жирный** → <strong>
-  const html = el.textContent
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n/g, '<br>');
-
-  el.innerHTML = html;
+  el.innerHTML = formatMarkdown(el.textContent);
   el.classList.add('done');
 }
 
@@ -525,9 +520,7 @@ async function _fireMicrosTip(deficient, wrap) {
       btn.textContent = '💡 Что съесть для восполнения?';
       const el = respWrap.querySelector('#microsTipText');
       if (el) {
-        el.innerHTML = el.textContent
-          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\n/g, '<br>');
+        el.innerHTML = formatMarkdown(el.textContent);
         el.classList.add('done');
       }
     },
@@ -710,19 +703,19 @@ export function openProfileModal(profile, onSave, calcGoals) {
   // Клики по сегментам
   ['pfGender', 'pfGoal'].forEach((groupId) => {
     document.querySelectorAll(`#${groupId} .pf-seg__btn`).forEach((btn) => {
-      btn.onclick = () => {
+      btn.addEventListener('click', () => {
         document.querySelectorAll(`#${groupId} .pf-seg__btn`).forEach((b) => b.classList.remove('active'));
         btn.classList.add('active');
         updatePreview();
-      };
+      });
     });
   });
   document.querySelectorAll('#pfActivity .pf-activity__btn').forEach((btn) => {
-    btn.onclick = () => {
+    btn.addEventListener('click', () => {
       document.querySelectorAll('#pfActivity .pf-activity__btn').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       updatePreview();
-    };
+    });
   });
 
   // Live-превью
@@ -759,9 +752,8 @@ export function openProfileModal(profile, onSave, calcGoals) {
 
   ['pfAge', 'pfHeight', 'pfWeight'].forEach((id) => {
     const el = document.getElementById(id);
-    if (el) el.oninput = updatePreview;
+    if (el) el.addEventListener('input', updatePreview);
   });
-  document.getElementById('pfName').oninput = null; // имя не влияет на расчёт
 
   updatePreview();
 
@@ -770,20 +762,27 @@ export function openProfileModal(profile, onSave, calcGoals) {
 
   // Закрытие
   const close = () => overlay.classList.remove('open');
-  document.getElementById('pfCloseBtn').onclick = close;
-  overlay.onclick = (e) => { if (e.target === overlay) close(); };
+  document.getElementById('pfCloseBtn').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
 
   // Сохранение
-  document.getElementById('pfSaveBtn').onclick = () => {
+  document.getElementById('pfSaveBtn').addEventListener('click', () => {
     const data = readForm();
     const name = document.getElementById('pfName')?.value.trim() ?? '';
     const newProfile = { ...data, name };
     onSave(newProfile);
     close();
-  };
+  });
 }
 
 // ── Утилиты ──────────────────────────────────────────────
+
+/** Конвертирует **жирный** и \n в HTML */
+function formatMarkdown(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
 
 function escHtml(str) {
   return String(str)

@@ -11,9 +11,80 @@ const MEAL_NAMES = {
   snack:     'Перекус',
 };
 
+// ── Общие утилиты ────────────────────────────────────────
+
+/**
+ * Отправляет запрос к Groq и стримит ответ через колбэки.
+ * @param {string}   prompt
+ * @param {object}   options    — { max_tokens, temperature }
+ * @param {object}   callbacks  — { onChunk, onDone, onError }
+ */
+async function streamGroq(prompt, { max_tokens, temperature }, { onChunk, onDone, onError }) {
+  if (!CONFIG.GROQ_API_KEY) {
+    onError('Groq API ключ не задан. Добавьте VITE_GROQ_API_KEY в файл .env\nКлюч бесплатно: https://console.groq.com/');
+    return;
+  }
+
+  let response;
+  try {
+    response = await fetch(CONFIG.GROQ_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({
+        model:       CONFIG.GROQ_MODEL,
+        messages:    [{ role: 'user', content: prompt }],
+        stream:      true,
+        max_tokens,
+        temperature,
+      }),
+    });
+  } catch {
+    onError('Не удалось подключиться к Groq. Проверьте интернет.');
+    return;
+  }
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    onError(`Groq API ошибка ${response.status}: ${err?.error?.message ?? 'неизвестная ошибка'}`);
+    return;
+  }
+
+  const reader  = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const lines = decoder.decode(value, { stream: true }).split('\n');
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') { onDone(); return; }
+
+        let parsed;
+        try { parsed = JSON.parse(payload); } catch { continue; }
+
+        const text = parsed.choices?.[0]?.delta?.content ?? '';
+        if (text) onChunk(text);
+      }
+    }
+  } catch {
+    onError('Ошибка чтения ответа от Groq.');
+    return;
+  }
+
+  onDone();
+}
+
+// ── Анализ дневника ──────────────────────────────────────
+
 /** Строит текстовый промпт из дневника + итогов */
 function buildPrompt(log, totals) {
-  // Группируем по приёмам пищи
   const groups = Object.groupBy(log, (e) => e.meal ?? 'snack');
 
   const mealsText = ['breakfast', 'lunch', 'dinner', 'snack']
@@ -60,22 +131,29 @@ ${totalsText}
  * Отправляет дневник в Groq и стримит ответ.
  * @param {Array}    log      — записи за день
  * @param {object}   totals   — { calories, protein, fat, carbs, fiber }
- * @param {object}   callbacks
- * @param {Function} callbacks.onChunk  — вызывается с каждым текстовым кусочком
- * @param {Function} callbacks.onDone   — вызывается когда ответ закончен
- * @param {Function} callbacks.onError  — вызывается при ошибке
+ * @param {object}   callbacks — { onChunk, onDone, onError }
  */
+export function analyzeDiet(log, totals, callbacks) {
+  if (!log.length) {
+    callbacks.onError('Дневник пуст. Добавьте хотя бы один приём пищи.');
+    return;
+  }
+
+  streamGroq(
+    buildPrompt(log, totals),
+    { max_tokens: 600, temperature: 0.65 },
+    callbacks,
+  );
+}
+
+// ── Советы по нутриентам ─────────────────────────────────
+
 /**
  * Стримит советы по продуктам для восполнения дефицитных нутриентов.
  * @param {Array}  deficient — [{label, value, unit, dv}, ...]  нутриенты < 50% нормы
  * @param {object} callbacks — { onChunk, onDone, onError }
  */
-export async function getNutrientTips(deficient, { onChunk, onDone, onError }) {
-  if (!CONFIG.GROQ_API_KEY) {
-    onError('Groq API ключ не задан.');
-    return;
-  }
-
+export function getNutrientTips(deficient, callbacks) {
   const list = deficient
     .map((n) => `${n.label}: ${n.value} ${n.unit} (${Math.round((n.value / n.dv) * 100)}% нормы)`)
     .join(', ');
@@ -94,127 +172,5 @@ export async function getNutrientTips(deficient, { onChunk, onDone, onError }) {
 
 Только продукты, никаких пояснений и вступлений. Продукты должны быть обычными и доступными.`;
 
-  let response;
-  try {
-    response = await fetch(CONFIG.GROQ_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`,
-        'Content-Type':  'application/json',
-      },
-      body: JSON.stringify({
-        model:       CONFIG.GROQ_MODEL,
-        messages:    [{ role: 'user', content: prompt }],
-        stream:      true,
-        max_tokens:  350,
-        temperature: 0.6,
-      }),
-    });
-  } catch {
-    onError('Не удалось подключиться к Groq.');
-    return;
-  }
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    onError(`Ошибка ${response.status}: ${err?.error?.message ?? 'неизвестная ошибка'}`);
-    return;
-  }
-
-  const reader  = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const lines = decoder.decode(value, { stream: true }).split('\n');
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const payload = line.slice(6).trim();
-        if (payload === '[DONE]') { onDone(); return; }
-        let parsed;
-        try { parsed = JSON.parse(payload); } catch { continue; }
-        const text = parsed.choices?.[0]?.delta?.content ?? '';
-        if (text) onChunk(text);
-      }
-    }
-  } catch {
-    onError('Ошибка чтения ответа.');
-    return;
-  }
-
-  onDone();
-}
-
-export async function analyzeDiet(log, totals, { onChunk, onDone, onError }) {
-  if (!CONFIG.GROQ_API_KEY) {
-    onError('Groq API ключ не задан. Добавьте VITE_GROQ_API_KEY в файл .env\nКлюч бесплатно: https://console.groq.com/');
-    return;
-  }
-
-  if (!log.length) {
-    onError('Дневник пуст. Добавьте хотя бы один приём пищи.');
-    return;
-  }
-
-  const prompt = buildPrompt(log, totals);
-
-  let response;
-  try {
-    response = await fetch(CONFIG.GROQ_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`,
-        'Content-Type':  'application/json',
-      },
-      body: JSON.stringify({
-        model:       CONFIG.GROQ_MODEL,
-        messages:    [{ role: 'user', content: prompt }],
-        stream:      true,
-        max_tokens:  600,
-        temperature: 0.65,
-      }),
-    });
-  } catch {
-    onError('Не удалось подключиться к Groq. Проверьте интернет.');
-    return;
-  }
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    onError(`Groq API ошибка ${response.status}: ${err?.error?.message ?? 'неизвестная ошибка'}`);
-    return;
-  }
-
-  // ── Читаем SSE-стрим ─────────────────────────────────
-  const reader  = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const raw   = decoder.decode(value, { stream: true });
-      const lines = raw.split('\n');
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const payload = line.slice(6).trim();
-        if (payload === '[DONE]') { onDone(); return; }
-
-        let parsed;
-        try { parsed = JSON.parse(payload); } catch { continue; }
-
-        const text = parsed.choices?.[0]?.delta?.content ?? '';
-        if (text) onChunk(text);
-      }
-    }
-  } catch {
-    onError('Ошибка чтения ответа от Groq.');
-    return;
-  }
-
-  onDone();
+  streamGroq(prompt, { max_tokens: 350, temperature: 0.6 }, callbacks);
 }

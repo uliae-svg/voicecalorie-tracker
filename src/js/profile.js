@@ -61,12 +61,3 @@ export function calcGoals(profile) {
   return { calories, protein, fat, carbs, fiber };
 }
 
-/**
- * Возвращает инициалы из имени (1–2 заглавных буквы).
- * «Юлия Иванова» → «ЮИ», «Юлия» → «Ю», '' → '?'
- */
-export function getInitials(name = '') {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-  if (!words.length) return '?';
-  return words.slice(0, 2).map((w) => w[0].toUpperCase()).join('');
-}

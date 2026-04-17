@@ -64,6 +64,14 @@ function openProfile() {
 
 document.getElementById('profileBtn').addEventListener('click', openProfile);
 
+// ── Сброс результатов текущего запроса ──────────────────
+
+function clearResults() {
+  document.getElementById('resultContainer').innerHTML = '';
+  document.getElementById('transcriptBox').style.display = 'none';
+  document.getElementById('aiResponse').style.display   = 'none';
+}
+
 // ── Навигация по датам ───────────────────────────────────
 
 document.getElementById('prevDayBtn').addEventListener('click', () => {
@@ -72,22 +80,17 @@ document.getElementById('prevDayBtn').addEventListener('click', () => {
   log = loadLog();
   setLogDate(selectedDate);
   refreshUI();
-  // Сбрасываем результаты предыдущего запроса
-  document.getElementById('resultContainer').innerHTML = '';
-  document.getElementById('transcriptBox').style.display = 'none';
-  document.getElementById('aiResponse').style.display = 'none';
+  clearResults();
 });
 
 document.getElementById('nextDayBtn').addEventListener('click', () => {
-  if (isToday()) return; // нельзя переходить в будущее
+  if (isToday()) return;
   selectedDate = new Date(selectedDate);
   selectedDate.setDate(selectedDate.getDate() + 1);
   log = loadLog();
   setLogDate(selectedDate);
   refreshUI();
-  document.getElementById('resultContainer').innerHTML = '';
-  document.getElementById('transcriptBox').style.display = 'none';
-  document.getElementById('aiResponse').style.display = 'none';
+  clearResults();
 });
 
 // ── Meal Tabs ─────────────────────────────────────────────
@@ -195,8 +198,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   clearDate(dateKeyOf(selectedDate));
   log = [];
   refreshUI();
-  document.getElementById('resultContainer').innerHTML = '';
-  document.getElementById('transcriptBox').style.display = 'none';
+  clearResults();
 });
 
 // ── Обновление всего UI ──────────────────────────────────
